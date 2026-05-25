@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Great Powers — Teacher</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
+
+#header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+#header h1 { font-size: 1.2rem; }
+#header a { color: #aac4ff; font-size: 0.85rem; text-decoration: none; }
+#header a:hover { text-decoration: underline; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* Login */
+#login-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 360px;
+  margin: 40px auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+#login-section h2 { margin-bottom: 16px; }
+input[type=password], input[type=text], input[type=number], input[type=color], select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { outline: none; border-color: #2980b9; }
+#teacher-pw-input { width: 100%; margin-bottom: 10px; }
+
+.btn {
+  display: inline-block;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: #2980b9; color: #fff; }
+.btn-success { background: #27ae60; color: #fff; }
+.btn-danger  { background: #c0392b; color: #fff; }
+.btn-warn    { background: #e67e22; color: #fff; }
+.btn-sm      { padding: 5px 12px; font-size: 0.82rem; }
+.err-msg { color: #c0392b; font-size: 0.85rem; margin-top: 6px; }
+.ok-msg  { color: #27ae60; font-size: 0.85rem; margin-top: 6px; }
+
+/* Sections */
+.section {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.section-header {
+  padding: 14px 18px;
+  background: #2c3e50;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.section-header:hover { background: #3d5166; }
+.section-header .toggle-icon { font-size: 0.8rem; }
+.section-body { padding: 18px; display: none; }
+.section-body.open { display: block; }
+
+/* Setup table */
+.setup-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.setup-table th {
+  text-align: left;
+  padding: 6px 6px;
+  background: #f5f5f5;
+  border-bottom: 2px solid #ddd;
+  font-size: 0.8rem;
+  color: #666;
+}
+.setup-table td { padding: 5px 4px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.setup-table input[type=text], .setup-table input[type=password], .setup-table input[type=number] {
+  width: 100%;
+  padding: 5px 6px;
+  font-size: 0.82rem;
+}
+.setup-table input[type=color] { width: 38px; height: 28px; padding: 1px; cursor: pointer; border-radius: 3px; }
+.setup-table input[type=number] { width: 60px; }
+
+.year-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.year-row label { font-weight: bold; font-size: 0.9rem; }
+.year-row input { width: 90px; }
+
+.teacher-pw-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.teacher-pw-row label { font-weight: bold; font-size: 0.9rem; }
+.teacher-pw-row input { width: 180px; }
+
+/* Turn management */
+.submission-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.sub-card {
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-width: 130px;
+  font-size: 0.85rem;
+  border: 2px solid transparent;
+}
+.sub-card.submitted   { background: #d5f0dc; border-color: #27ae60; }
+.sub-card.not-submitted { background: #fde8e8; border-color: #e74c3c; }
+.sub-card .sub-name { font-weight: bold; }
+.sub-card .sub-status { font-size: 0.75rem; margin-top: 2px; }
+.sub-card .sub-detail { font-size: 0.78rem; color: #555; margin-top: 4px; }
+
+/* War resolution */
+.war-list { margin-bottom: 14px; }
+.war-item {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+
+.sides-container {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.side-box {
+  flex: 1;
+  min-width: 200px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.side-box h4 { margin-bottom: 8px; font-size: 0.9rem; }
+.country-checkbox { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.85rem; cursor: pointer; }
+.country-checkbox input { cursor: pointer; }
+
+.power-summary {
+  display: flex;
+  gap: 20px;
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+}
+.power-summary .side-power { flex: 1; text-align: center; }
+.power-summary .side-power .label { font-size: 0.75rem; color: #888; }
+.power-summary .side-power .value { font-size: 1.3rem; font-weight: bold; }
+.power-summary .vs { align-self: center; font-weight: bold; color: #888; }
+
+.die-section { margin-bottom: 14px; }
+.die-display {
+  display: inline-block;
+  width: 60px; height: 60px;
+  border: 3px solid #333;
+  border-radius: 10px;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  line-height: 54px;
+  margin: 0 12px;
+  background: #fff;
+  vertical-align: middle;
+}
+.casualty-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 10px; }
+.casualty-table th { background: #f5f5f5; padding: 5px 8px; text-align: left; }
+.casualty-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; }
+.casualty-table tr.highlighted td { background: #fffde7; font-weight: bold; }
+.war-result-msg {
+  background: #e8f5e9;
+  border: 1px solid #81c784;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  margin-top: 10px;
+}
+
+/* Danger zone */
+.danger-zone { background: #fff5f5; }
+.danger-zone .section-header { background: #922b21; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>&#127759; Great Powers — Teacher Panel</h1>
+  <a href="/">&#8592; Back to Leaderboard</a>
+</div>
+
+<!-- Login -->
+<div id="login-section">
+  <h2>Teacher Login</h2>
+  <input type="password" id="teacher-pw-input" placeholder="Teacher password" onkeydown="if(event.key==='Enter')teacherLogin()">
+  <button class="btn btn-primary" onclick="teacherLogin()">Login</button>
+  <p class="err-msg" id="login-err"></p>
+  <p style="margin-top:12px;font-size:0.8rem;color:#888">First time? The default password is set during Game Setup below. If this is brand new, leave the password blank and click Login — you will be taken to setup.</p>
+</div>
+
+<!-- Teacher panel (hidden until login) -->
+<div id="teacher-panel" style="display:none">
+<div class="container">
+
+  <!-- Game Setup -->
+  <div class="section" id="section-setup">
+    <div class="section-header" onclick="toggleSection('setup')">
+      &#9881; Game Setup
+      <span class="toggle-icon" id="toggle-setup">&#9660;</span>
+    </div>
+    <div class="section-body open" id="body-setup">
+      <div class="year-row">
+        <label>Starting Year:</label>
+        <input type="number" id="setup-year" value="1900">
+      </div>
+      <div class="teacher-pw-row">
+        <label>Teacher Password:</label>
+        <input type="password" id="setup-teacher-pw" placeholder="Set teacher password">
+        <input type="password" id="setup-current-pw" placeholder="Current password (if changing)">
+      </div>
+
+      <table class="setup-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Country Name</th>
+            <th>Color</th>
+            <th>Army</th>
+            <th>Navy</th>
+            <th>Industry</th>
+            <th>Colonies</th>
+            <th>Team Password</th>
+          </tr>
+        </thead>
+        <tbody id="country-setup-rows"></tbody>
+      </table>
+
+      <div style="margin-top:14px">
+        <button class="btn btn-primary" onclick="saveSetup()">Save & Start Game</button>
+        <p class="err-msg" id="setup-err"></p>
+        <p class="ok-msg"  id="setup-ok"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Turn Management -->
+  <div class="section" id="section-turn">
+    <div class="section-header" onclick="toggleSection('turn')">
+      &#9654; Turn Management — <span id="turn-year-label">Year —</span>
+      <span class="toggle-icon" id="toggle-turn">&#9660;</span>
+    </div>
+    <div class="section-body" id="body-turn">
+      <p style="font-size:0.85rem;color:#555;margin-bottom:12px">Check who has submitted, then advance to the next year when ready.</p>
+      <div class="submission-grid" id="submission-grid"></div>
+      <button class="btn btn-success" id="advance-btn" onclick="advanceTurn()">&#9654; Process Purchases &amp; Advance to Next Year</button>
+      <p class="err-msg" id="turn-err"></p>
+      <p class="ok-msg"  id="turn-ok"></p>
+    </div>
+  </div>
+
+  <!-- War Resolution -->
+  <div class="section" id="section-war">
+    <div class="section-header" onclick="toggleSection('war')">
+      &#9876; War Resolution
+      <span class="toggle-icon" id="toggle-war">&#9660;</span>
+    </div>
+    <div class="section-body" id="body-war">
+      <div id="pending-wars-list" class="war-list"></div>
+      <p style="font-size:0.85rem;color:#555;margin-bottom:12px">Assign countries to each side, roll the die, then apply results.</p>
+
+      <div class="sides-container">
+        <div class="side-box">
+          <h4>&#9635; Side A</h4>
+          <div id="side-a-checks"></div>
+        </div>
+        <div class="side-box">
+          <h4>&#9636; Side B</h4>
+          <div id="side-b-checks"></div>
+        </div>
+      </div>
+
+      <div class="power-summary">
+        <div class="side-power">
+          <div class="label">Side A Military Power</div>
+          <div class="value" id="side-a-power">—</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="side-power">
+          <div class="label">Side B Military Power</div>
+          <div class="value" id="side-b-power">—</div>
+        </div>
+      </div>
+
+      <div class="die-section">
+        <button class="btn btn-warn" onclick="rollDie()">&#127922; Roll Die</button>
+        <span class="die-display" id="die-face">—</span>
+        <span id="die-description" style="font-size:0.85rem;color:#555"></span>
+      </div>
+
+      <table class="casualty-table">
+        <thead><tr><th>Roll</th><th>Winner Loses</th><th>Loser Loses (Army/Navy)</th><th>Loser Loses (Colonies)</th></tr></thead>
+        <tbody id="casualty-table-body"></tbody>
+      </table>
+
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-danger" id="apply-war-btn" onclick="applyWar()">Apply War Results</button>
+        <button class="btn btn-sm" onclick="clearWars()" style="background:#888;color:#fff">Clear All Wars</button>
+      </div>
+      <div id="war-result-msg" class="war-result-msg" style="display:none"></div>
+      <p class="err-msg" id="war-err"></p>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="section danger-zone" id="section-danger">
+    <div class="section-header" onclick="toggleSection('danger')">
+      &#9888; Danger Zone
+      <span class="toggle-icon" id="toggle-danger">&#9660;</span>
+    </div>
+    <div class="section-body" id="body-danger">
+      <p style="font-size:0.85rem;color:#666;margin-bottom:12px">Reset all countries to starting values (army=2, navy=1, industry=2, colonies=2) and return to Year 1900. Country names and passwords are kept. This cannot be undone.</p>
+      <button class="btn btn-danger" onclick="resetGame()">Reset Game to Start</button>
+      <p class="err-msg" id="danger-err"></p>
+      <p class="ok-msg"  id="danger-ok"></p>
+    </div>
+  </div>
+
+</div><!-- .container -->
+</div><!-- #teacher-panel -->
+
+<script>
+var teacherPw = '';
+var teacherState = null;
+
+var CASUALTY_TABLE = [
+  {roll:1, winner:50, loser:70},
+  {roll:2, winner:40, loser:60},
+  {roll:3, winner:30, loser:50},
+  {roll:4, winner:20, loser:40},
+  {roll:5, winner:10, loser:30},
+  {roll:6, winner:0,  loser:20},
+];
+
+var DEFAULT_COUNTRIES = [
+  {id:'russia',    name:'Russia',    color:'#c0392b'},
+  {id:'germany',   name:'Germany',   color:'#2980b9'},
+  {id:'brazil',    name:'Brazil',    color:'#2c3e50'},
+  {id:'india',     name:'India',     color:'#27ae60'},
+  {id:'australia', name:'Australia', color:'#8e44ad'},
+  {id:'ukraine',   name:'Ukraine',   color:'#e74c3c'},
+  {id:'chad',      name:'Chad',      color:'#e67e22'},
+  {id:'mongolia',  name:'Mongolia',  color:'#2e86c1'},
+  {id:'japan',     name:'Japan',     color:'#7d6608'},
+];
+
+// ─── Login ───
+
+async function teacherLogin() {
+  var pw = document.getElementById('teacher-pw-input').value;
+  var errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+
+  // Allow blank password on first-ever setup (no state yet)
+  if (pw) {
+    var r = await apiPost('/api/auth/teacher', {password: pw});
+    if (!r.ok) {
+      // Maybe game isn't set up yet — allow entry to show setup form
+      if (r.error && r.error.indexOf('not set up') !== -1) {
+        teacherPw = pw || 'admin';
+        showTeacherPanel();
+        return;
+      }
+      errEl.textContent = r.error || 'Wrong password.';
+      return;
+    }
+  }
+  teacherPw = pw;
+  showTeacherPanel();
+}
+
+async function showTeacherPanel() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('teacher-panel').style.display = 'block';
+  buildCasualtyTable();
+  buildSetupRows();
+  await loadTeacherState();
+}
+
+// ─── Helpers ───
+
+async function loadTeacherState() {
+  var r = await fetch('/api/teacher/state?pw=' + encodeURIComponent(teacherPw));
+  if (r.status === 403) { alert('Session expired — please refresh and log in again.'); return; }
+  teacherState = await r.json();
+  renderTurnSection();
+  renderWarSection();
+  // Pre-fill setup form from current state
+  if (teacherState.countries) {
+    teacherState.countries.forEach(function(c, i) {
+      setIfEl('setup-name-' + i, c.name);
+      setIfEl('setup-color-' + i, c.color);
+      setIfEl('setup-army-' + i, c.army);
+      setIfEl('setup-navy-' + i, c.navy);
+      setIfEl('setup-industry-' + i, c.industry);
+      setIfEl('setup-colonies-' + i, c.colonies);
+    });
+    document.getElementById('setup-year').value = teacherState.year || 1900;
+  }
+}
+
+function setIfEl(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+async function apiPost(url, body) {
+  try {
+    var r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    return await r.json();
+  } catch(e) { return {error: 'Network error'}; }
+}
+
+function toggleSection(id) {
+  var body = document.getElementById('body-' + id);
+  var icon = document.getElementById('toggle-' + id);
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    icon.textContent = '▶';
+  } else {
+    body.classList.add('open');
+    icon.textContent = '▼';
+  }
+}
+
+// ─── Setup ───
+
+function buildSetupRows() {
+  var tbody = document.getElementById('country-setup-rows');
+  var html = '';
+  DEFAULT_COUNTRIES.forEach(function(dc, i) {
+    html += '<tr>'
+      + '<td style="color:#888;font-size:0.8rem">' + (i+1) + '</td>'
+      + '<td><input type="text" id="setup-name-' + i + '" value="' + dc.name + '"></td>'
+      + '<td><input type="color" id="setup-color-' + i + '" value="' + dc.color + '"></td>'
+      + '<td><input type="number" id="setup-army-' + i + '" value="2" min="0"></td>'
+      + '<td><input type="number" id="setup-navy-' + i + '" value="1" min="0"></td>'
+      + '<td><input type="number" id="setup-industry-' + i + '" value="2" min="0" max="500"></td>'
+      + '<td><input type="number" id="setup-colonies-' + i + '" value="2" min="0"></td>'
+      + '<td><input type="password" id="setup-country-pw-' + i + '" placeholder="team password"></td>'
+      + '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+async function saveSetup() {
+  var errEl = document.getElementById('setup-err');
+  var okEl  = document.getElementById('setup-ok');
+  errEl.textContent = '';
+  okEl.textContent  = '';
+
+  var newPw     = document.getElementById('setup-teacher-pw').value.trim();
+  var currentPw = document.getElementById('setup-current-pw').value;
+  var year      = parseInt(document.getElementById('setup-year').value) || 1900;
+
+  if (!newPw) { errEl.textContent = 'Set a teacher password.'; return; }
+
+  var countries = [];
+  for (var i = 0; i < 9; i++) {
+    var name = (document.getElementById('setup-name-' + i).value || '').trim();
+    var pw   = document.getElementById('setup-country-pw-' + i).value;
+    if (!name) { errEl.textContent = 'Country ' + (i+1) + ' needs a name.'; return; }
+    if (!pw)   { errEl.textContent = 'Country ' + (i+1) + ' (' + name + ') needs a team password.'; return; }
+    countries.push({
+      name:     name,
+      color:    document.getElementById('setup-color-' + i).value,
+      army:     parseInt(document.getElementById('setup-army-' + i).value) || 0,
+      navy:     parseInt(document.getElementById('setup-navy-' + i).value) || 0,
+      industry: parseInt(document.getElementById('setup-industry-' + i).value) || 0,
+      colonies: parseInt(document.getElementById('setup-colonies-' + i).value) || 0,
+      password: pw,
+    });
+  }
+
+  var r = await apiPost('/api/teacher/setup', {
+    year: year,
+    teacher_password: newPw,
+    current_password: currentPw || teacherPw,
+    countries: countries,
+  });
+
+  if (r.ok) {
+    teacherPw = newPw;
+    okEl.textContent = 'Game set up successfully!';
+    await loadTeacherState();
+  } else {
+    errEl.textContent = r.error || 'Setup failed.';
+  }
+}
+
+// ─── Turn Management ───
+
+function renderTurnSection() {
+  if (!teacherState) return;
+  document.getElementById('turn-year-label').textContent = 'Year ' + teacherState.year;
+  var grid = document.getElementById('submission-grid');
+  var html = '';
+  teacherState.countries.forEach(function(c) {
+    var done  = c.purchases_submitted;
+    var cls   = done ? 'submitted' : 'not-submitted';
+    var label = done ? '&#10003; Submitted' : '&#8203; Waiting...';
+    var detail = '';
+    if (done && c.pending_purchase) {
+      var p = c.pending_purchase;
+      var parts = [];
+      if (p.army)     parts.push('Army +' + p.army);
+      if (p.navy)     parts.push('Navy +' + p.navy);
+      if (p.industry) parts.push('Industry +' + p.industry);
+      if (p.colonies) parts.push('Colony +' + p.colonies);
+      if (p.declare_war_on) parts.push('&#9876; War on ' + p.declare_war_on);
+      detail = parts.join(', ');
+    }
+    html += '<div class="sub-card ' + cls + '" style="border-color:' + c.color + '">'
+      + '<div class="sub-name" style="color:' + c.color + '">' + c.name + '</div>'
+      + '<div class="sub-status">' + label + '</div>'
+      + (detail ? '<div class="sub-detail">' + detail + '</div>' : '')
+      + '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+async function advanceTurn() {
+  var errEl = document.getElementById('turn-err');
+  var okEl  = document.getElementById('turn-ok');
+  errEl.textContent = '';
+  okEl.textContent  = '';
+
+  var submitted = teacherState ? teacherState.countries.filter(function(c){ return c.purchases_submitted; }).length : 0;
+  var total     = teacherState ? teacherState.countries.length : 9;
+  if (submitted < total) {
+    if (!confirm(submitted + ' of ' + total + ' countries have submitted. Advance anyway?')) return;
+  }
+
+  var r = await apiPost('/api/teacher/advance-turn', {teacher_password: teacherPw});
+  if (r.ok) {
+    okEl.textContent = 'Advanced to Year ' + r.year + '.' + (r.wars_declared && r.wars_declared.length ? ' ' + r.wars_declared.length + ' war(s) declared — see War Resolution.' : '');
+    await loadTeacherState();
+  } else {
+    errEl.textContent = r.error || 'Failed.';
+  }
+}
+
+// ─── War Resolution ───
+
+function renderWarSection() {
+  if (!teacherState) return;
+  var wars = teacherState.pending_wars || [];
+  var warListEl = document.getElementById('pending-wars-list');
+  if (wars.length) {
+    warListEl.innerHTML = '<strong>Pending Wars:</strong> ' + wars.map(function(w){
+      return '<div class="war-item">&#9876; ' + w.attacker + ' declared war on ' + w.target + '</div>';
+    }).join('');
+  } else {
+    warListEl.innerHTML = '<p style="color:#888;font-size:0.85rem;margin-bottom:10px">No declared wars this turn.</p>';
+  }
+
+  // Build country checkboxes for both sides
+  var countries = teacherState.countries || [];
+  var sideAHtml = '';
+  var sideBHtml = '';
+  countries.forEach(function(c) {
+    var cbA = '<label class="country-checkbox">'
+      + '<input type="checkbox" name="side-a" value="' + c.id + '" onchange="updatePowerDisplay()">'
+      + '<span style="color:' + c.color + ';font-weight:bold">' + c.name + '</span>'
+      + ' (' + c.military_power.toFixed(1) + ')</label>';
+    var cbB = '<label class="country-checkbox">'
+      + '<input type="checkbox" name="side-b" value="' + c.id + '" onchange="updatePowerDisplay()">'
+      + '<span style="color:' + c.color + ';font-weight:bold">' + c.name + '</span>'
+      + ' (' + c.military_power.toFixed(1) + ')</label>';
+    sideAHtml += cbA;
+    sideBHtml += cbB;
+  });
+  document.getElementById('side-a-checks').innerHTML = sideAHtml;
+  document.getElementById('side-b-checks').innerHTML = sideBHtml;
+  updatePowerDisplay();
+}
+
+function getSelectedSide(name) {
+  var boxes = document.querySelectorAll('input[name="' + name + '"]:checked');
+  return Array.from(boxes).map(function(b){ return b.value; });
+}
+
+function updatePowerDisplay() {
+  if (!teacherState) return;
+  var cmap = {};
+  teacherState.countries.forEach(function(c){ cmap[c.id] = c; });
+  var sideA = getSelectedSide('side-a');
+  var sideB = getSelectedSide('side-b');
+  var aP = sideA.reduce(function(s,id){ return s + (cmap[id] ? cmap[id].military_power : 0); }, 0);
+  var bP = sideB.reduce(function(s,id){ return s + (cmap[id] ? cmap[id].military_power : 0); }, 0);
+  document.getElementById('side-a-power').textContent = aP.toFixed(1);
+  document.getElementById('side-b-power').textContent = bP.toFixed(1);
+}
+
+var currentDieRoll = null;
+
+function rollDie() {
+  currentDieRoll = Math.floor(Math.random() * 6) + 1;
+  var DIE_FACES = ['—','&#9856;','&#9857;','&#9858;','&#9859;','&#9860;','&#9861;'];
+  document.getElementById('die-face').innerHTML = DIE_FACES[currentDieRoll];
+  var row = CASUALTY_TABLE.find(function(r){ return r.roll === currentDieRoll; });
+  document.getElementById('die-description').textContent =
+    'Winner loses ' + row.winner + '% of Army/Navy. Loser loses ' + row.loser + '% of Army/Navy and ' + row.loser + '% of Colonies.';
+  buildCasualtyTable(currentDieRoll);
+}
+
+function buildCasualtyTable(highlight) {
+  var html = '';
+  CASUALTY_TABLE.forEach(function(row) {
+    var cls = (row.roll === highlight) ? 'highlighted' : '';
+    html += '<tr class="' + cls + '"><td>' + row.roll + '</td><td>' + row.winner + '%</td><td>' + row.loser + '%</td><td>' + row.loser + '%</td></tr>';
+  });
+  document.getElementById('casualty-table-body').innerHTML = html;
+}
+
+async function applyWar() {
+  var errEl = document.getElementById('war-err');
+  var msgEl = document.getElementById('war-result-msg');
+  errEl.textContent = '';
+  msgEl.style.display = 'none';
+
+  if (!currentDieRoll) { errEl.textContent = 'Roll the die first.'; return; }
+
+  var sideA = getSelectedSide('side-a');
+  var sideB = getSelectedSide('side-b');
+  if (!sideA.length || !sideB.length) { errEl.textContent = 'Assign at least one country to each side.'; return; }
+
+  // Check for overlap
+  var overlap = sideA.filter(function(id){ return sideB.indexOf(id) !== -1; });
+  if (overlap.length) { errEl.textContent = 'A country cannot be on both sides.'; return; }
+
+  if (!confirm('Apply war results? This will modify army, navy, and colony counts. This cannot be undone.')) return;
+
+  var r = await apiPost('/api/teacher/resolve-war', {
+    teacher_password: teacherPw,
+    side_a: sideA,
+    side_b: sideB,
+    die_roll: currentDieRoll,
+  });
+
+  if (r.ok) {
+    var winnerLabel = r.winner_side === 'a' ? 'Side A' : 'Side B';
+    var loserLabel  = r.winner_side === 'a' ? 'Side B' : 'Side A';
+    msgEl.innerHTML = '<strong>&#10003; War resolved!</strong> '
+      + winnerLabel + ' wins (power: ' + (r.winner_side === 'a' ? r.side_a_power : r.side_b_power).toFixed(1) + ' vs '
+      + (r.winner_side === 'a' ? r.side_b_power : r.side_a_power).toFixed(1) + '). '
+      + 'Die roll: ' + r.die_roll + '. '
+      + winnerLabel + ' lost ' + Math.round(r.winner_loss_pct * 100) + '% of Army/Navy. '
+      + loserLabel  + ' lost ' + Math.round(r.loser_loss_pct  * 100) + '% of Army/Navy and ' + r.colonies_transferred + ' colonies (transferred to largest winner).';
+    msgEl.style.display = 'block';
+    currentDieRoll = null;
+    document.getElementById('die-face').innerHTML = '—';
+    document.getElementById('die-description').textContent = '';
+    buildCasualtyTable(null);
+    await loadTeacherState();
+  } else {
+    errEl.textContent = r.error || 'Failed.';
+  }
+}
+
+async function clearWars() {
+  if (!confirm('Clear all pending wars?')) return;
+  var r = await apiPost('/api/teacher/clear-wars', {teacher_password: teacherPw});
+  if (r.ok) await loadTeacherState();
+}
+
+// ─── Reset ───
+
+async function resetGame() {
+  if (!confirm('Reset all countries to starting values (army 2, navy 1, industry 2, colonies 2) and return to Year 1900? This cannot be undone.')) return;
+  var r = await apiPost('/api/teacher/reset', {teacher_password: teacherPw});
+  if (r.ok) {
+    document.getElementById('danger-ok').textContent = 'Game reset to starting values.';
+    await loadTeacherState();
+  } else {
+    document.getElementById('danger-err').textContent = r.error || 'Failed.';
+  }
+}
+
+buildCasualtyTable(null);
+</script>
+</body>
+</html>

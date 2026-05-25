@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Great Powers</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
+
+/* Header */
+#header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+#header h1 { font-size: 1.4rem; letter-spacing: 1px; }
+#year-display { font-size: 1.1rem; color: #f0c040; font-weight: bold; }
+
+/* Tabs */
+#tab-bar {
+  background: #16213e;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 6px 8px;
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  background: #2a2a4a;
+  color: #ccc;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.tab-btn:hover { background: #3a3a6a; }
+.tab-btn.active { color: #fff; }
+
+/* Panels */
+.panel { display: none; padding: 16px; }
+.panel.active { display: block; }
+
+/* Leaderboard */
+#leaderboard-panel { max-width: 100%; overflow-x: auto; }
+
+.grid-table {
+  border-collapse: collapse;
+  min-width: 600px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.grid-table th, .grid-table td {
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  border: 1px solid #e8e8e8;
+}
+.grid-table th.row-label {
+  text-align: left;
+  background: #f8f8f8;
+  font-weight: bold;
+  color: #555;
+  min-width: 120px;
+}
+.grid-table th.country-header {
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+.grid-table tr.separator td, .grid-table tr.separator th {
+  padding: 3px;
+  background: #f0f0f0;
+  border: none;
+}
+.grid-table td.highlight { font-weight: bold; }
+
+/* Leaderboard ranked list + chart */
+.bottom-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+.ranked-list {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.ranked-list h3 { font-size: 0.9rem; margin-bottom: 8px; color: #555; }
+.rank-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+.rank-row:last-child { border: none; }
+.rank-name { font-weight: bold; }
+.rank-vp { color: #555; }
+
+.chart-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex: 1;
+  min-width: 300px;
+}
+.chart-container h3 { font-size: 0.9rem; margin-bottom: 8px; color: #555; }
+canvas { display: block; }
+
+/* Country panel */
+.country-panel { max-width: 540px; }
+
+/* Password form */
+.pw-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 360px;
+}
+.pw-form h2 { margin-bottom: 16px; font-size: 1.1rem; }
+.pw-form input[type=password] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+.pw-form input[type=password]:focus { outline: none; border-color: #2980b9; }
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: bold;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: #2980b9; color: #fff; }
+.btn-success { background: #27ae60; color: #fff; }
+.btn-danger  { background: #c0392b; color: #fff; }
+.err-msg { color: #c0392b; font-size: 0.85rem; margin-top: 6px; }
+
+/* Purchase form */
+.purchase-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.purchase-form h2 { margin-bottom: 4px; }
+.purchase-form .subtitle { color: #666; font-size: 0.85rem; margin-bottom: 16px; }
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 90px;
+  text-align: center;
+}
+.stat-box .label { font-size: 0.75rem; color: #888; }
+.stat-box .value { font-size: 1.1rem; font-weight: bold; }
+
+.purchase-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+.purchase-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  color: #888;
+  border-bottom: 2px solid #eee;
+}
+.purchase-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.purchase-table td:first-child { font-weight: bold; font-size: 0.9rem; }
+.purchase-table td .cost-label { font-size: 0.75rem; color: #888; }
+.qty-input {
+  width: 70px;
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.qty-input:focus { outline: none; border-color: #2980b9; }
+.subtotal-cell { font-weight: bold; text-align: right; padding-right: 12px; }
+
+.cost-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.cost-summary .total { font-size: 1rem; font-weight: bold; }
+.cost-summary .remaining { color: #27ae60; font-weight: bold; }
+.cost-summary .over { color: #c0392b; font-weight: bold; }
+
+.war-field { margin-bottom: 16px; }
+.war-field label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; }
+.war-field input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.war-field input:focus { outline: none; border-color: #c0392b; }
+
+.submitted-msg {
+  background: #d5f0dc;
+  color: #1a6b30;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-weight: bold;
+  margin-top: 10px;
+  display: none;
+}
+.warning-msg {
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+
+/* Not set up */
+.not-setup {
+  background: #fff;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  color: #888;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Refresh indicator */
+#refresh-indicator {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #aaa;
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>&#127759; GREAT POWERS</h1>
+  <span id="year-display">Year: —</span>
+  <span id="refresh-indicator">Refreshing...</span>
+</div>
+
+<div id="tab-bar">
+  <button class="tab-btn active" id="tab-leaderboard" onclick="showTab('leaderboard')">Leaderboard</button>
+</div>
+
+<div id="panel-leaderboard" class="panel active">
+  <div id="leaderboard-panel">
+    <div class="not-setup" id="not-setup-msg" style="display:none">
+      Game not set up yet. The teacher needs to visit <strong>/teacher</strong> to configure the game.
+    </div>
+    <div id="leaderboard-content" style="display:none">
+      <div style="overflow-x:auto">
+        <table class="grid-table" id="stats-table"></table>
+      </div>
+      <div class="bottom-section">
+        <div class="ranked-list">
+          <h3>Leaderboard</h3>
+          <div id="ranked-list-body"></div>
+        </div>
+        <div class="chart-container">
+          <h3>Victory Points</h3>
+          <canvas id="vp-chart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var state = null;
+var tabPanels = {};
+var refreshTimer = null;
+var REFRESH_MS = 30000;
+
+async function fetchState() {
+  try {
+    var r = await fetch('/api/state');
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+async function init() {
+  state = await fetchState();
+  if (!state) return;
+  buildTabs();
+  renderLeaderboard();
+  startRefresh();
+}
+
+function startRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(async function() {
+    var newState = await fetchState();
+    if (newState) {
+      state = newState;
+      renderLeaderboard();
+      document.getElementById('refresh-indicator').textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    }
+  }, REFRESH_MS);
+  document.getElementById('refresh-indicator').textContent = '';
+}
+
+function buildTabs() {
+  var bar = document.getElementById('tab-bar');
+  // Remove old country tabs
+  var old = bar.querySelectorAll('.country-tab');
+  old.forEach(function(e){ e.remove(); });
+  // Remove old country panels
+  Object.keys(tabPanels).forEach(function(id){
+    var el = document.getElementById('panel-' + id);
+    if (el) el.remove();
+  });
+  tabPanels = {};
+
+  if (!state || !state.countries) return;
+  state.countries.forEach(function(c) {
+    // Tab button
+    var btn = document.createElement('button');
+    btn.className = 'tab-btn country-tab';
+    btn.id = 'tab-' + c.id;
+    btn.textContent = c.name;
+    btn.style.borderBottom = '3px solid ' + c.color;
+    btn.onclick = (function(cid){ return function(){ showTab(cid); }; })(c.id);
+    bar.appendChild(btn);
+
+    // Panel
+    var panel = document.createElement('div');
+    panel.id = 'panel-' + c.id;
+    panel.className = 'panel country-panel';
+    panel.innerHTML = '<div class="pw-form" id="pwform-' + c.id + '">'
+      + '<h2 style="color:' + c.color + '">' + c.name + '</h2>'
+      + '<p style="color:#666;font-size:0.85rem;margin-bottom:12px">Enter your team password to continue.</p>'
+      + '<input type="password" id="pw-' + c.id + '" placeholder="Team password" onkeydown="if(event.key===\'Enter\')verifyCountry(\'' + c.id + '\')">'
+      + '<button class="btn btn-primary" onclick="verifyCountry(\'' + c.id + '\')">Enter</button>'
+      + '<p class="err-msg" id="pwerr-' + c.id + '"></p>'
+      + '</div>'
+      + '<div id="purchaseform-' + c.id + '" style="display:none"></div>';
+    document.body.appendChild(panel);
+    tabPanels[c.id] = true;
+  });
+}
+
+function showTab(id) {
+  // Deactivate all
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+
+  var tabBtn = document.getElementById('tab-' + id);
+  var panel  = document.getElementById('panel-' + id);
+  if (tabBtn) tabBtn.classList.add('active');
+  if (panel)  panel.classList.add('active');
+
+  if (id !== 'leaderboard') {
+    var saved = sessionStorage.getItem('pw_' + id);
+    if (saved) {
+      showPurchaseForm(id, saved);
+    }
+  }
+}
+
+async function verifyCountry(countryId) {
+  var pw = document.getElementById('pw-' + countryId).value;
+  var errEl = document.getElementById('pwerr-' + countryId);
+  errEl.textContent = '';
+  if (!pw) { errEl.textContent = 'Enter your password.'; return; }
+
+  var r = await apiPost('/api/auth/country', {country_id: countryId, password: pw});
+  if (r.ok) {
+    sessionStorage.setItem('pw_' + countryId, pw);
+    showPurchaseForm(countryId, pw);
+  } else {
+    errEl.textContent = r.error || 'Wrong password.';
+  }
+}
+
+function showPurchaseForm(countryId, password) {
+  var c = state.countries.find(function(x){ return x.id === countryId; });
+  if (!c) return;
+
+  var econ = c.econ_points;
+  var navyCapMsg = '';
+  if (c.colonies > c.navy * 2) {
+    navyCapMsg = '<div class="warning-msg">&#9888; You need at least 1 Navy for every 2 Colonies. Current: ' + c.colonies + ' colonies, ' + c.navy + ' navies.</div>';
+  }
+  var industryLeft = 500 - c.industry;
+  var submittedStyle = c.purchases_submitted ? 'display:block' : 'display:none';
+  var formStyle = c.purchases_submitted ? 'opacity:0.5;pointer-events:none' : '';
+
+  var html = '<div class="purchase-form" id="pf-' + countryId + '" style="' + formStyle + '">'
+    + '<h2 style="color:' + c.color + '">' + c.name + '</h2>'
+    + '<p class="subtitle">Year ' + state.year + ' — Economic Points Available: <strong>' + econ + '</strong></p>'
+
+    + '<div class="stats-row">'
+    + '<div class="stat-box"><div class="label">Army</div><div class="value">' + c.army + '</div></div>'
+    + '<div class="stat-box"><div class="label">Navy</div><div class="value">' + c.navy + '</div></div>'
+    + '<div class="stat-box"><div class="label">Industry</div><div class="value">' + c.industry + '</div></div>'
+    + '<div class="stat-box"><div class="label">Colonies</div><div class="value">' + c.colonies + '</div></div>'
+    + '</div>'
+
+    + navyCapMsg
+
+    + '<table class="purchase-table">'
+    + '<tr><th>Item</th><th>Cost Each</th><th>Qty</th><th style="text-align:right;padding-right:12px">Subtotal</th></tr>'
+    + '<tr><td>Army<div class="cost-label">Military (not permanent)</div></td><td>1 pt</td>'
+    + '<td><input class="qty-input" type="number" min="0" value="0" id="qty-army-' + countryId + '" oninput="calcCost(\'' + countryId + '\')"></td>'
+    + '<td class="subtotal-cell" id="sub-army-' + countryId + '">0</td></tr>'
+    + '<tr><td>Navy<div class="cost-label">Military (not permanent)</div></td><td>1 pt</td>'
+    + '<td><input class="qty-input" type="number" min="0" value="0" id="qty-navy-' + countryId + '" oninput="calcCost(\'' + countryId + '\')"></td>'
+    + '<td class="subtotal-cell" id="sub-navy-' + countryId + '">0</td></tr>'
+    + '<tr><td>Industry<div class="cost-label">+1 pt/turn (max ' + industryLeft + ' more)</div></td><td>2 pts</td>'
+    + '<td><input class="qty-input" type="number" min="0" max="' + industryLeft + '" value="0" id="qty-industry-' + countryId + '" oninput="calcCost(\'' + countryId + '\')"></td>'
+    + '<td class="subtotal-cell" id="sub-industry-' + countryId + '">0</td></tr>'
+    + '<tr><td>Colony<div class="cost-label">+1 pt/turn, needs 1 Navy per 2</div></td><td>1 pt</td>'
+    + '<td><input class="qty-input" type="number" min="0" value="0" id="qty-colonies-' + countryId + '" oninput="calcCost(\'' + countryId + '\')"></td>'
+    + '<td class="subtotal-cell" id="sub-colonies-' + countryId + '">0</td></tr>'
+    + '</table>'
+
+    + '<div class="cost-summary" id="cost-summary-' + countryId + '">'
+    + '<span class="total">Total Cost: <strong id="total-cost-' + countryId + '">0</strong> pts</span>'
+    + '<span class="remaining" id="remaining-' + countryId + '">' + econ + ' pts remaining</span>'
+    + '</div>'
+
+    + '<div class="war-field">'
+    + '<label>(Optional) Declare War On:</label>'
+    + '<input type="text" id="war-target-' + countryId + '" placeholder="Country name">'
+    + '</div>'
+
+    + '<button class="btn btn-success" id="submit-btn-' + countryId + '" onclick="submitPurchase(\'' + countryId + '\',\'' + escapeJs(password) + '\')">Submit Purchase</button>'
+    + '<p class="err-msg" id="submit-err-' + countryId + '"></p>'
+    + '</div>'
+    + '<div class="submitted-msg" id="submitted-msg-' + countryId + '" style="' + submittedStyle + '">&#10003; Purchase submitted for Year ' + state.year + '!</div>';
+
+  document.getElementById('purchaseform-' + countryId).innerHTML = html;
+  document.getElementById('purchaseform-' + countryId).style.display = 'block';
+  document.getElementById('pwform-' + countryId).style.display = 'none';
+}
+
+function escapeJs(s) {
+  return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+function calcCost(countryId) {
+  var c = state.countries.find(function(x){ return x.id === countryId; });
+  if (!c) return;
+  var econ = c.econ_points;
+
+  var army     = parseInt(document.getElementById('qty-army-' + countryId).value) || 0;
+  var navy     = parseInt(document.getElementById('qty-navy-' + countryId).value) || 0;
+  var industry = parseInt(document.getElementById('qty-industry-' + countryId).value) || 0;
+  var colonies = parseInt(document.getElementById('qty-colonies-' + countryId).value) || 0;
+
+  army     = Math.max(0, army);
+  navy     = Math.max(0, navy);
+  industry = Math.max(0, Math.min(industry, 500 - c.industry));
+  colonies = Math.max(0, colonies);
+
+  var total = army + navy + industry * 2 + colonies;
+  var remaining = econ - total;
+
+  document.getElementById('sub-army-' + countryId).textContent     = army;
+  document.getElementById('sub-navy-' + countryId).textContent     = navy;
+  document.getElementById('sub-industry-' + countryId).textContent = industry * 2;
+  document.getElementById('sub-colonies-' + countryId).textContent = colonies;
+  document.getElementById('total-cost-' + countryId).textContent   = total;
+
+  var remEl = document.getElementById('remaining-' + countryId);
+  remEl.textContent = remaining + ' pts remaining';
+  remEl.className   = remaining < 0 ? 'over' : 'remaining';
+
+  document.getElementById('submit-btn-' + countryId).disabled = (remaining < 0);
+}
+
+async function submitPurchase(countryId, password) {
+  var c = state.countries.find(function(x){ return x.id === countryId; });
+  var errEl = document.getElementById('submit-err-' + countryId);
+  errEl.textContent = '';
+
+  var army     = parseInt(document.getElementById('qty-army-' + countryId).value) || 0;
+  var navy     = parseInt(document.getElementById('qty-navy-' + countryId).value) || 0;
+  var industry = parseInt(document.getElementById('qty-industry-' + countryId).value) || 0;
+  var colonies = parseInt(document.getElementById('qty-colonies-' + countryId).value) || 0;
+  var warTarget = document.getElementById('war-target-' + countryId).value.trim();
+
+  // Warn about navy/colony ratio
+  var newColonies = c.colonies + colonies;
+  var newNavy     = c.navy + navy;
+  if (newColonies > newNavy * 2) {
+    if (!confirm('Warning: You will have ' + newColonies + ' colonies but only ' + newNavy + ' navies. You need 1 navy per 2 colonies. Continue anyway?')) return;
+  }
+
+  var r = await apiPost('/api/purchase', {
+    country_id: countryId, password: password,
+    army: army, navy: navy, industry: industry, colonies: colonies,
+    declare_war_on: warTarget
+  });
+
+  if (r.ok) {
+    document.getElementById('pf-' + countryId).style.cssText = 'opacity:0.5;pointer-events:none';
+    document.getElementById('submitted-msg-' + countryId).style.display = 'block';
+  } else {
+    errEl.textContent = r.error || 'Submission failed.';
+  }
+}
+
+// ─── Leaderboard rendering ───
+
+var ROWS = [
+  {key: 'army',           label: 'Army'},
+  {key: 'navy',           label: 'Navy'},
+  {key: 'industry',       label: 'Industry'},
+  {key: 'colonies',       label: 'Colonies'},
+  {key: null},
+  {key: 'econ_points',    label: 'Econ Points',    highlight: true},
+  {key: null},
+  {key: 'military_power', label: 'Military Power', highlight: true},
+  {key: null},
+  {key: 'victory_points', label: 'Victory Points', highlight: true},
+];
+
+function renderLeaderboard() {
+  if (!state) return;
+
+  document.getElementById('year-display').textContent = 'Year: ' + state.year;
+
+  if (!state.initialized) {
+    document.getElementById('not-setup-msg').style.display = 'block';
+    document.getElementById('leaderboard-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('not-setup-msg').style.display = 'none';
+  document.getElementById('leaderboard-content').style.display = 'block';
+
+  var countries = state.countries;
+  var table = document.getElementById('stats-table');
+  var html = '<thead><tr><th class="row-label"></th>';
+  countries.forEach(function(c) {
+    html += '<th class="country-header" style="color:' + c.color + '">' + c.name + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  ROWS.forEach(function(row) {
+    if (!row.key) {
+      html += '<tr class="separator"><td colspan="' + (countries.length + 1) + '"></td></tr>';
+      return;
+    }
+    html += '<tr><th class="row-label">' + row.label + '</th>';
+    countries.forEach(function(c) {
+      var val = c[row.key];
+      var disp = (row.key === 'military_power' || row.key === 'victory_points')
+        ? (Number.isInteger(val) ? val : val.toFixed(1))
+        : val;
+      html += '<td class="' + (row.highlight ? 'highlight' : '') + '" style="color:' + c.color + '">' + disp + '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  renderRankedList(countries);
+  drawChart(countries);
+}
+
+function renderRankedList(countries) {
+  var sorted = countries.slice().sort(function(a,b){ return b.victory_points - a.victory_points; });
+  var html = '';
+  sorted.forEach(function(c) {
+    var vp = Number.isInteger(c.victory_points) ? c.victory_points : c.victory_points.toFixed(1);
+    html += '<div class="rank-row">'
+      + '<span class="rank-name" style="color:' + c.color + '">' + c.name + '</span>'
+      + '<span class="rank-vp">' + vp + '</span></div>';
+  });
+  document.getElementById('ranked-list-body').innerHTML = html;
+}
+
+function drawChart(countries) {
+  var canvas = document.getElementById('vp-chart');
+  var container = canvas.parentElement;
+  canvas.width  = container.clientWidth - 32;
+  canvas.height = 200;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!countries.length) return;
+
+  var maxVP   = Math.max.apply(null, countries.map(function(c){ return c.victory_points; }));
+  var padTop  = 24, padBottom = 36, padLeft = 8, padRight = 8;
+  var chartH  = canvas.height - padTop - padBottom;
+  var barW    = Math.floor((canvas.width - padLeft - padRight) / countries.length) - 4;
+
+  countries.forEach(function(c, i) {
+    var x       = padLeft + i * (barW + 4);
+    var barH    = maxVP > 0 ? Math.round((c.victory_points / maxVP) * chartH) : 0;
+    var y       = padTop + chartH - barH;
+
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x, y, barW, barH);
+
+    // Value
+    var vp = Number.isInteger(c.victory_points) ? c.victory_points : c.victory_points.toFixed(1);
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(vp, x + barW / 2, y - 4);
+
+    // Name (rotated)
+    ctx.save();
+    ctx.translate(x + barW / 2, canvas.height - 4);
+    ctx.rotate(-Math.PI / 4);
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#555';
+    ctx.textAlign = 'right';
+    ctx.fillText(c.name, 0, 0);
+    ctx.restore();
+  });
+}
+
+// ─── Helpers ───
+async function apiPost(url, body) {
+  try {
+    var r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    return await r.json();
+  } catch(e) {
+    return {error: 'Network error'};
+  }
+}
+
+window.addEventListener('resize', function() {
+  if (state && state.countries) drawChart(state.countries);
+});
+
+init();
+</script>
+</body>
+</html>
