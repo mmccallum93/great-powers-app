@@ -6,73 +6,80 @@
 <title>Great Powers — Teacher</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; }
+body { font-family: Arial, sans-serif; background: #c8b98a; color: #1e1509; }
 
 #header {
-  background: #1a1a2e;
-  color: #fff;
+  background: #1a2710;
+  color: #e8d9b0;
   padding: 12px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
+  border-bottom: 3px solid #b8960c;
 }
-#header h1 { font-size: 1.2rem; }
-#header a { color: #aac4ff; font-size: 0.85rem; text-decoration: none; }
+#header h1 { font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+#header a { color: #d4a017; font-size: 0.85rem; text-decoration: none; }
 #header a:hover { text-decoration: underline; }
 
 .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
 /* Login */
 #login-section {
-  background: #fff;
-  border-radius: 8px;
+  background: #f5ead8;
+  border-radius: 4px;
   padding: 32px;
   max-width: 360px;
   margin: 40px auto;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(30,20,5,0.25);
+  border: 1px solid #9a8060;
 }
-#login-section h2 { margin-bottom: 16px; }
+#login-section h2 { margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
 input[type=password], input[type=text], input[type=number], input[type=color], select {
   padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #9a8060;
+  border-radius: 3px;
   font-size: 0.9rem;
+  background: #fdf6e8;
+  color: #1e1509;
 }
-input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { outline: none; border-color: #2980b9; }
+input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { outline: none; border-color: #d4a017; }
 #teacher-pw-input { width: 100%; margin-bottom: 10px; }
 
 .btn {
   display: inline-block;
   padding: 9px 18px;
   border: none;
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: bold;
   transition: opacity 0.15s;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 .btn:hover { opacity: 0.85; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background: #2980b9; color: #fff; }
-.btn-success { background: #27ae60; color: #fff; }
-.btn-danger  { background: #c0392b; color: #fff; }
-.btn-warn    { background: #e67e22; color: #fff; }
+.btn-primary { background: #3d5222; color: #e8d9b0; }
+.btn-success { background: #2d5a1b; color: #e8d9b0; }
+.btn-danger  { background: #6b1515; color: #f0d8d8; }
+.btn-warn    { background: #8b6914; color: #fdf6e8; }
 .btn-sm      { padding: 5px 12px; font-size: 0.82rem; }
-.err-msg { color: #c0392b; font-size: 0.85rem; margin-top: 6px; }
-.ok-msg  { color: #27ae60; font-size: 0.85rem; margin-top: 6px; }
+.err-msg { color: #7a1515; font-size: 0.85rem; margin-top: 6px; }
+.ok-msg  { color: #2d5a1b; font-size: 0.85rem; margin-top: 6px; }
 
 /* Sections */
 .section {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #f5ead8;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(30,20,5,0.2);
   margin-bottom: 16px;
   overflow: hidden;
+  border: 1px solid #9a8060;
 }
 .section-header {
   padding: 14px 18px;
-  background: #2c3e50;
-  color: #fff;
+  background: #1a2710;
+  color: #e8d9b0;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
@@ -80,8 +87,11 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
   justify-content: space-between;
   align-items: center;
   user-select: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #b8960c;
 }
-.section-header:hover { background: #3d5166; }
+.section-header:hover { background: #243319; }
 .section-header .toggle-icon { font-size: 0.8rem; }
 .section-body { padding: 18px; display: none; }
 .section-body.open { display: block; }
@@ -91,12 +101,14 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
 .setup-table th {
   text-align: left;
   padding: 6px 6px;
-  background: #f5f5f5;
-  border-bottom: 2px solid #ddd;
+  background: #e8d8b8;
+  border-bottom: 2px solid #c0a878;
   font-size: 0.8rem;
-  color: #666;
+  color: #3a2a10;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.setup-table td { padding: 5px 4px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.setup-table td { padding: 5px 4px; border-bottom: 1px solid #d4c09a; vertical-align: middle; }
 .setup-table input[type=text], .setup-table input[type=password], .setup-table input[type=number] {
   width: 100%;
   padding: 5px 6px;
@@ -121,27 +133,28 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
   margin-bottom: 16px;
 }
 .sub-card {
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 10px 14px;
   min-width: 130px;
   font-size: 0.85rem;
   border: 2px solid transparent;
 }
-.sub-card.submitted   { background: #d5f0dc; border-color: #27ae60; }
-.sub-card.not-submitted { background: #fde8e8; border-color: #e74c3c; }
-.sub-card .sub-name { font-weight: bold; }
+.sub-card.submitted     { background: #d4e8c8; border-color: #2d5a1b; }
+.sub-card.not-submitted { background: #f0d8d8; border-color: #6b1515; }
+.sub-card .sub-name   { font-weight: bold; }
 .sub-card .sub-status { font-size: 0.75rem; margin-top: 2px; }
-.sub-card .sub-detail { font-size: 0.78rem; color: #555; margin-top: 4px; }
+.sub-card .sub-detail { font-size: 0.78rem; color: #5a4020; margin-top: 4px; }
 
 /* War resolution */
 .war-list { margin-bottom: 14px; }
 .war-item {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 6px;
+  background: #f5e8b0;
+  border: 1px solid #b8960c;
+  border-radius: 3px;
   padding: 8px 12px;
   margin-bottom: 6px;
   font-size: 0.88rem;
+  color: #3a2a10;
 }
 
 .sides-container {
@@ -153,58 +166,62 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
 .side-box {
   flex: 1;
   min-width: 200px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
+  border: 2px solid #9a8060;
+  border-radius: 3px;
   padding: 10px 12px;
+  background: #ede0c4;
 }
-.side-box h4 { margin-bottom: 8px; font-size: 0.9rem; }
+.side-box h4 { margin-bottom: 8px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #3a2a10; }
 .country-checkbox { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.85rem; cursor: pointer; }
 .country-checkbox input { cursor: pointer; }
 
 .power-summary {
   display: flex;
   gap: 20px;
-  background: #f8f8f8;
-  border-radius: 6px;
+  background: #ede0c4;
+  border-radius: 3px;
   padding: 10px 14px;
   margin-bottom: 14px;
   font-size: 0.9rem;
+  border: 1px solid #c0a878;
 }
 .power-summary .side-power { flex: 1; text-align: center; }
-.power-summary .side-power .label { font-size: 0.75rem; color: #888; }
-.power-summary .side-power .value { font-size: 1.3rem; font-weight: bold; }
-.power-summary .vs { align-self: center; font-weight: bold; color: #888; }
+.power-summary .side-power .label { font-size: 0.75rem; color: #7a6040; text-transform: uppercase; letter-spacing: 0.5px; }
+.power-summary .side-power .value { font-size: 1.3rem; font-weight: bold; color: #1e1509; }
+.power-summary .vs { align-self: center; font-weight: bold; color: #7a6040; }
 
 .die-section { margin-bottom: 14px; }
 .die-display {
   display: inline-block;
   width: 60px; height: 60px;
-  border: 3px solid #333;
-  border-radius: 10px;
+  border: 3px solid #5a4020;
+  border-radius: 6px;
   font-size: 2rem;
   font-weight: bold;
   text-align: center;
   line-height: 54px;
   margin: 0 12px;
-  background: #fff;
+  background: #fdf6e8;
+  color: #1e1509;
   vertical-align: middle;
 }
 .casualty-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 10px; }
-.casualty-table th { background: #f5f5f5; padding: 5px 8px; text-align: left; }
-.casualty-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; }
-.casualty-table tr.highlighted td { background: #fffde7; font-weight: bold; }
+.casualty-table th { background: #e8d8b8; padding: 5px 8px; text-align: left; color: #3a2a10; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.5px; border-bottom: 2px solid #c0a878; }
+.casualty-table td { padding: 5px 8px; border-bottom: 1px solid #d4c09a; }
+.casualty-table tr.highlighted td { background: #f5e8a8; font-weight: bold; }
 .war-result-msg {
-  background: #e8f5e9;
-  border: 1px solid #81c784;
-  border-radius: 6px;
+  background: #d4e8c8;
+  border: 1px solid #7a9060;
+  border-radius: 3px;
   padding: 10px 14px;
   font-size: 0.88rem;
   margin-top: 10px;
+  color: #1a4010;
 }
 
 /* Danger zone */
-.danger-zone { background: #fff5f5; }
-.danger-zone .section-header { background: #922b21; }
+.danger-zone { background: #f0d8d8; }
+.danger-zone .section-header { background: #6b1515; border-bottom-color: #8b2020; }
 </style>
 </head>
 <body>
