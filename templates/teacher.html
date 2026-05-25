@@ -222,6 +222,57 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
 /* Danger zone */
 .danger-zone { background: #f0d8d8; }
 .danger-zone .section-header { background: #6b1515; border-bottom-color: #8b2020; }
+
+/* Team count row */
+.team-count-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.team-count-row label { font-weight: bold; font-size: 0.9rem; }
+.team-count-row select { width: 80px; }
+
+/* War roll results */
+.war-outcome-banner {
+  background: #ede0c4;
+  border: 2px solid #b8960c;
+  border-radius: 3px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  color: #3a2a10;
+  letter-spacing: 0.5px;
+}
+.roll-results-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.roll-side-block {
+  flex: 1;
+  min-width: 200px;
+  background: #ede0c4;
+  border-radius: 3px;
+  padding: 10px 12px;
+  border: 1px solid #c0a878;
+}
+.roll-side-block h4 { margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #3a2a10; }
+.roll-country-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #d4c09a;
+  font-size: 0.85rem;
+}
+.roll-country-row:last-child { border: none; }
+.roll-country-name { font-weight: bold; min-width: 90px; }
+.roll-die-face {
+  display: inline-block;
+  width: 30px; height: 30px;
+  border: 2px solid #5a4020;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  text-align: center;
+  line-height: 26px;
+  background: #fdf6e8;
+  flex-shrink: 0;
+}
+.roll-casualties { font-size: 0.78rem; color: #5a4020; flex: 1; }
 </style>
 </head>
 <body>
@@ -237,7 +288,7 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
   <input type="password" id="teacher-pw-input" placeholder="Teacher password" onkeydown="if(event.key==='Enter')teacherLogin()">
   <button class="btn btn-primary" onclick="teacherLogin()">Login</button>
   <p class="err-msg" id="login-err"></p>
-  <p style="margin-top:12px;font-size:0.8rem;color:#888">First time? The default password is set during Game Setup below. If this is brand new, leave the password blank and click Login — you will be taken to setup.</p>
+  <p style="margin-top:12px;font-size:0.8rem;color:#7a6040">First time? Leave the password blank and click Login — you will be taken to setup.</p>
 </div>
 
 <!-- Teacher panel (hidden until login) -->
@@ -251,6 +302,19 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
       <span class="toggle-icon" id="toggle-setup">&#9660;</span>
     </div>
     <div class="section-body open" id="body-setup">
+      <div class="team-count-row">
+        <label>Number of Teams:</label>
+        <select id="setup-team-count" onchange="buildSetupRows()">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9" selected>9</option>
+        </select>
+      </div>
       <div class="year-row">
         <label>Starting Year:</label>
         <input type="number" id="setup-year" value="1900">
@@ -308,7 +372,7 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
     </div>
     <div class="section-body" id="body-war">
       <div id="pending-wars-list" class="war-list"></div>
-      <p style="font-size:0.85rem;color:#555;margin-bottom:12px">Assign countries to each side, roll the die, then apply results.</p>
+      <p style="font-size:0.85rem;color:#5a4020;margin-bottom:12px">Assign countries to each side, then roll dice — each country rolls separately for their own losses.</p>
 
       <div class="sides-container">
         <div class="side-box">
@@ -333,20 +397,26 @@ input[type=password]:focus, input[type=text]:focus, input[type=number]:focus { o
         </div>
       </div>
 
-      <div class="die-section">
-        <button class="btn btn-warn" onclick="rollDie()">&#127922; Roll Die</button>
-        <span class="die-display" id="die-face">—</span>
-        <span id="die-description" style="font-size:0.85rem;color:#555"></span>
+      <div style="margin-bottom:12px">
+        <button class="btn btn-warn" onclick="rollAllDice()">&#127922; Roll Dice for All Countries</button>
       </div>
 
-      <table class="casualty-table">
-        <thead><tr><th>Roll</th><th>Winner Loses</th><th>Loser Loses (Army/Navy)</th><th>Loser Loses (Colonies)</th></tr></thead>
-        <tbody id="casualty-table-body"></tbody>
-      </table>
+      <div id="roll-results" style="display:none">
+        <div class="war-outcome-banner" id="war-outcome-banner"></div>
+        <div class="roll-results-grid" id="roll-results-grid"></div>
+      </div>
 
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-danger" id="apply-war-btn" onclick="applyWar()">Apply War Results</button>
-        <button class="btn btn-sm" onclick="clearWars()" style="background:#888;color:#fff">Clear All Wars</button>
+      <details style="margin-bottom:12px">
+        <summary style="cursor:pointer;font-size:0.82rem;color:#5a4020;text-transform:uppercase;letter-spacing:0.5px;padding:4px 0">&#9654; Casualty Reference Table</summary>
+        <table class="casualty-table" style="margin-top:8px">
+          <thead><tr><th>Roll</th><th>Winner Loses (Mil)</th><th>Loser Loses (Mil)</th><th>Loser Loses (Col)</th></tr></thead>
+          <tbody id="casualty-table-body"></tbody>
+        </table>
+      </details>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-danger" id="apply-war-btn" onclick="applyWar()" style="display:none">&#9654; Apply War Results</button>
+        <button class="btn btn-sm" onclick="clearWars()" style="background:#8b6914;color:#fdf6e8">Clear All Wars</button>
       </div>
       <div id="war-result-msg" class="war-result-msg" style="display:none"></div>
       <p class="err-msg" id="war-err"></p>
@@ -384,15 +454,15 @@ var CASUALTY_TABLE = [
 ];
 
 var DEFAULT_COUNTRIES = [
-  {id:'russia',    name:'Russia',    color:'#c0392b'},
-  {id:'germany',   name:'Germany',   color:'#2980b9'},
-  {id:'brazil',    name:'Brazil',    color:'#2c3e50'},
-  {id:'india',     name:'India',     color:'#27ae60'},
-  {id:'australia', name:'Australia', color:'#8e44ad'},
-  {id:'ukraine',   name:'Ukraine',   color:'#e74c3c'},
-  {id:'chad',      name:'Chad',      color:'#e67e22'},
-  {id:'mongolia',  name:'Mongolia',  color:'#2e86c1'},
-  {id:'japan',     name:'Japan',     color:'#7d6608'},
+  {id:'russia',  name:'Russia',         color:'#b03a2e'},
+  {id:'germany', name:'Germany',        color:'#1a5276'},
+  {id:'austria', name:'Austria-Hungary',color:'#d4ac0d'},
+  {id:'britain', name:'Britain',        color:'#6c3483'},
+  {id:'ottoman', name:'Ottomans',       color:'#148f77'},
+  {id:'usa',     name:'USA',            color:'#2e86c1'},
+  {id:'italy',   name:'Italy',          color:'#1e8449'},
+  {id:'france',  name:'France',         color:'#e67e22'},
+  {id:'japan',   name:'Japan',          color:'#cb4335'},
 ];
 
 // ─── Login ───
@@ -438,6 +508,9 @@ async function loadTeacherState() {
   renderWarSection();
   // Pre-fill setup form from current state
   if (teacherState.countries) {
+    var countSel = document.getElementById('setup-team-count');
+    if (countSel) countSel.value = teacherState.countries.length;
+    buildSetupRows();
     teacherState.countries.forEach(function(c, i) {
       setIfEl('setup-name-' + i, c.name);
       setIfEl('setup-color-' + i, c.color);
@@ -481,11 +554,13 @@ function toggleSection(id) {
 // ─── Setup ───
 
 function buildSetupRows() {
+  var count = parseInt((document.getElementById('setup-team-count') || {}).value) || 9;
   var tbody = document.getElementById('country-setup-rows');
   var html = '';
-  DEFAULT_COUNTRIES.forEach(function(dc, i) {
+  for (var i = 0; i < count; i++) {
+    var dc = DEFAULT_COUNTRIES[i];
     html += '<tr>'
-      + '<td style="color:#888;font-size:0.8rem">' + (i+1) + '</td>'
+      + '<td style="color:#7a6040;font-size:0.8rem">' + (i+1) + '</td>'
       + '<td><input type="text" id="setup-name-' + i + '" value="' + dc.name + '"></td>'
       + '<td><input type="color" id="setup-color-' + i + '" value="' + dc.color + '"></td>'
       + '<td><input type="number" id="setup-army-' + i + '" value="2" min="0"></td>'
@@ -494,7 +569,7 @@ function buildSetupRows() {
       + '<td><input type="number" id="setup-colonies-' + i + '" value="2" min="0"></td>'
       + '<td><input type="password" id="setup-country-pw-' + i + '" placeholder="team password"></td>'
       + '</tr>';
-  });
+  }
   tbody.innerHTML = html;
 }
 
@@ -510,8 +585,9 @@ async function saveSetup() {
 
   if (!newPw) { errEl.textContent = 'Set a teacher password.'; return; }
 
+  var count = parseInt((document.getElementById('setup-team-count') || {}).value) || 9;
   var countries = [];
-  for (var i = 0; i < 9; i++) {
+  for (var i = 0; i < count; i++) {
     var name = (document.getElementById('setup-name-' + i).value || '').trim();
     var pw   = document.getElementById('setup-country-pw-' + i).value;
     if (!name) { errEl.textContent = 'Country ' + (i+1) + ' needs a name.'; return; }
@@ -583,7 +659,8 @@ async function advanceTurn() {
   var submitted = teacherState ? teacherState.countries.filter(function(c){ return c.purchases_submitted; }).length : 0;
   var total     = teacherState ? teacherState.countries.length : 9;
   if (submitted < total) {
-    if (!confirm(submitted + ' of ' + total + ' countries have submitted. Advance anyway?')) return;
+    errEl.textContent = submitted + ' of ' + total + ' countries have submitted. All countries must submit before advancing the turn.';
+    return;
   }
 
   var r = await apiPost('/api/teacher/advance-turn', {teacher_password: teacherPw});
@@ -647,25 +724,81 @@ function updatePowerDisplay() {
   document.getElementById('side-b-power').textContent = bP.toFixed(1);
 }
 
-var currentDieRoll = null;
+var currentDieRolls = {};
+var currentWarSideA = [];
+var currentWarSideB = [];
+var DIE_FACES = ['','&#9856;','&#9857;','&#9858;','&#9859;','&#9860;','&#9861;'];
 
-function rollDie() {
-  currentDieRoll = Math.floor(Math.random() * 6) + 1;
-  var DIE_FACES = ['—','&#9856;','&#9857;','&#9858;','&#9859;','&#9860;','&#9861;'];
-  document.getElementById('die-face').innerHTML = DIE_FACES[currentDieRoll];
-  var row = CASUALTY_TABLE.find(function(r){ return r.roll === currentDieRoll; });
-  document.getElementById('die-description').textContent =
-    'Winner loses ' + row.winner + '% of Army/Navy. Loser loses ' + row.loser + '% of Army/Navy and ' + row.loser + '% of Colonies.';
-  buildCasualtyTable(currentDieRoll);
-}
-
-function buildCasualtyTable(highlight) {
+function buildCasualtyTable() {
   var html = '';
   CASUALTY_TABLE.forEach(function(row) {
-    var cls = (row.roll === highlight) ? 'highlighted' : '';
-    html += '<tr class="' + cls + '"><td>' + row.roll + '</td><td>' + row.winner + '%</td><td>' + row.loser + '%</td><td>' + row.loser + '%</td></tr>';
+    html += '<tr><td>' + row.roll + '</td><td>' + row.winner + '%</td><td>' + row.loser + '%</td><td>' + row.loser + '%</td></tr>';
   });
   document.getElementById('casualty-table-body').innerHTML = html;
+}
+
+function rollAllDice() {
+  var errEl = document.getElementById('war-err');
+  errEl.textContent = '';
+
+  var sideA = getSelectedSide('side-a');
+  var sideB = getSelectedSide('side-b');
+  if (!sideA.length || !sideB.length) { errEl.textContent = 'Assign at least one country to each side before rolling.'; return; }
+  var overlap = sideA.filter(function(id){ return sideB.indexOf(id) !== -1; });
+  if (overlap.length) { errEl.textContent = 'A country cannot be on both sides.'; return; }
+
+  currentWarSideA = sideA;
+  currentWarSideB = sideB;
+  currentDieRolls = {};
+  sideA.concat(sideB).forEach(function(cid) {
+    currentDieRolls[cid] = Math.floor(Math.random() * 6) + 1;
+  });
+
+  var cmap = {};
+  teacherState.countries.forEach(function(c){ cmap[c.id] = c; });
+  var aP = sideA.reduce(function(s,id){ return s + (cmap[id] ? cmap[id].military_power : 0); }, 0);
+  var bP = sideB.reduce(function(s,id){ return s + (cmap[id] ? cmap[id].military_power : 0); }, 0);
+  var winnerSide  = aP >= bP ? 'a' : 'b';
+  var winnerIds   = winnerSide === 'a' ? sideA : sideB;
+  var loserIds    = winnerSide === 'a' ? sideB : sideA;
+  var winnerLabel = winnerSide === 'a' ? 'SIDE A' : 'SIDE B';
+  var loserLabel  = winnerSide === 'a' ? 'SIDE B' : 'SIDE A';
+  var winnerPower = winnerSide === 'a' ? aP : bP;
+  var loserPower  = winnerSide === 'a' ? bP : aP;
+
+  document.getElementById('war-outcome-banner').innerHTML =
+    '&#9876; ' + winnerLabel + ' WINS — Power ' + winnerPower.toFixed(1) + ' vs ' + loserPower.toFixed(1);
+
+  function buildSideBlock(ids, sideLabel, isWinner) {
+    var power = ids.reduce(function(s,id){ return s + (cmap[id] ? cmap[id].military_power : 0); }, 0);
+    var icon  = isWinner ? '&#9651;' : '&#9661;';
+    var title = icon + ' ' + sideLabel + ' (' + (isWinner ? 'Winner' : 'Loser') + ' — Power ' + power.toFixed(1) + ')';
+    var html  = '<div class="roll-side-block"><h4>' + title + '</h4>';
+    ids.forEach(function(cid) {
+      var c    = cmap[cid];
+      if (!c) return;
+      var roll = currentDieRolls[cid];
+      var row  = CASUALTY_TABLE.find(function(r){ return r.roll === roll; });
+      var pct  = isWinner ? row.winner : row.loser;
+      var note = isWinner
+        ? 'Loses ' + pct + '% of Army &amp; Navy'
+        : 'Loses ' + pct + '% of Army, Navy &amp; Colonies';
+      html += '<div class="roll-country-row">'
+        + '<span class="roll-country-name" style="color:' + c.color + '">' + c.name + '</span>'
+        + '<span class="roll-die-face">' + DIE_FACES[roll] + '</span>'
+        + '<span class="roll-casualties">' + note + '</span>'
+        + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  document.getElementById('roll-results-grid').innerHTML =
+    buildSideBlock(winnerIds, winnerLabel, true) +
+    buildSideBlock(loserIds,  loserLabel,  false);
+
+  document.getElementById('roll-results').style.display = 'block';
+  document.getElementById('apply-war-btn').style.display = 'inline-block';
 }
 
 async function applyWar() {
@@ -674,39 +807,27 @@ async function applyWar() {
   errEl.textContent = '';
   msgEl.style.display = 'none';
 
-  if (!currentDieRoll) { errEl.textContent = 'Roll the die first.'; return; }
-
-  var sideA = getSelectedSide('side-a');
-  var sideB = getSelectedSide('side-b');
-  if (!sideA.length || !sideB.length) { errEl.textContent = 'Assign at least one country to each side.'; return; }
-
-  // Check for overlap
-  var overlap = sideA.filter(function(id){ return sideB.indexOf(id) !== -1; });
-  if (overlap.length) { errEl.textContent = 'A country cannot be on both sides.'; return; }
+  if (!Object.keys(currentDieRolls).length) { errEl.textContent = 'Roll the dice first.'; return; }
 
   if (!confirm('Apply war results? This will modify army, navy, and colony counts. This cannot be undone.')) return;
 
   var r = await apiPost('/api/teacher/resolve-war', {
     teacher_password: teacherPw,
-    side_a: sideA,
-    side_b: sideB,
-    die_roll: currentDieRoll,
+    side_a: currentWarSideA,
+    side_b: currentWarSideB,
+    die_rolls: currentDieRolls,
   });
 
   if (r.ok) {
     var winnerLabel = r.winner_side === 'a' ? 'Side A' : 'Side B';
-    var loserLabel  = r.winner_side === 'a' ? 'Side B' : 'Side A';
-    msgEl.innerHTML = '<strong>&#10003; War resolved!</strong> '
-      + winnerLabel + ' wins (power: ' + (r.winner_side === 'a' ? r.side_a_power : r.side_b_power).toFixed(1) + ' vs '
-      + (r.winner_side === 'a' ? r.side_b_power : r.side_a_power).toFixed(1) + '). '
-      + 'Die roll: ' + r.die_roll + '. '
-      + winnerLabel + ' lost ' + Math.round(r.winner_loss_pct * 100) + '% of Army/Navy. '
-      + loserLabel  + ' lost ' + Math.round(r.loser_loss_pct  * 100) + '% of Army/Navy and ' + r.colonies_transferred + ' colonies (transferred to largest winner).';
+    msgEl.innerHTML = '<strong>&#10003; War resolved!</strong> ' + winnerLabel + ' wins. '
+      + r.colonies_transferred + ' colonies transferred to largest winner.';
     msgEl.style.display = 'block';
-    currentDieRoll = null;
-    document.getElementById('die-face').innerHTML = '—';
-    document.getElementById('die-description').textContent = '';
-    buildCasualtyTable(null);
+    currentDieRolls = {};
+    currentWarSideA = [];
+    currentWarSideB = [];
+    document.getElementById('roll-results').style.display = 'none';
+    document.getElementById('apply-war-btn').style.display = 'none';
     await loadTeacherState();
   } else {
     errEl.textContent = r.error || 'Failed.';
@@ -732,7 +853,7 @@ async function resetGame() {
   }
 }
 
-buildCasualtyTable(null);
+buildCasualtyTable();
 </script>
 </body>
 </html>

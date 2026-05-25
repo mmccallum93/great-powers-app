@@ -113,15 +113,15 @@ def _blob_write(pathname, data):
 _STATE_PATH = "game/state.json"
 
 _DEFAULT_COUNTRIES = [
-    {"id": "russia",    "name": "Russia",    "color": "#c0392b"},
-    {"id": "germany",   "name": "Germany",   "color": "#2980b9"},
-    {"id": "brazil",    "name": "Brazil",    "color": "#2c3e50"},
-    {"id": "india",     "name": "India",     "color": "#27ae60"},
-    {"id": "australia", "name": "Australia", "color": "#8e44ad"},
-    {"id": "ukraine",   "name": "Ukraine",   "color": "#e74c3c"},
-    {"id": "chad",      "name": "Chad",      "color": "#e67e22"},
-    {"id": "mongolia",  "name": "Mongolia",  "color": "#2e86c1"},
-    {"id": "japan",     "name": "Japan",     "color": "#7d6608"},
+    {"id": "russia",  "name": "Russia",         "color": "#b03a2e"},
+    {"id": "germany", "name": "Germany",         "color": "#1a5276"},
+    {"id": "austria", "name": "Austria-Hungary", "color": "#d4ac0d"},
+    {"id": "britain", "name": "Britain",         "color": "#6c3483"},
+    {"id": "ottoman", "name": "Ottomans",        "color": "#148f77"},
+    {"id": "usa",     "name": "USA",             "color": "#2e86c1"},
+    {"id": "italy",   "name": "Italy",           "color": "#1e8449"},
+    {"id": "france",  "name": "France",          "color": "#e67e22"},
+    {"id": "japan",   "name": "Japan",           "color": "#cb4335"},
 ]
 
 
@@ -303,8 +303,8 @@ def api_teacher_setup():
         return jsonify({"error": "Teacher password is required"}), 400
 
     countries_data = data.get("countries", [])
-    if len(countries_data) != 9:
-        return jsonify({"error": "Must provide exactly 9 countries"}), 400
+    if not (2 <= len(countries_data) <= 9):
+        return jsonify({"error": "Must provide between 2 and 9 countries"}), 400
 
     new_state = {
         "initialized": True,
@@ -341,6 +341,10 @@ def api_teacher_advance_turn():
     if not _check_teacher_pw(state, data.get("teacher_password", "")):
         return jsonify({"error": "Wrong password"}), 403
 
+    unsubmitted = [c["name"] for c in state["countries"] if not c.get("purchases_submitted")]
+    if unsubmitted:
+        return jsonify({"error": f"Waiting on: {', '.join(unsubmitted)}"}), 400
+
     wars_declared = []
     for country in state["countries"]:
         p = country.get("pending_purchase") or {}
@@ -374,7 +378,12 @@ def api_teacher_resolve_war():
 
     side_a_ids = data.get("side_a", [])
     side_b_ids = data.get("side_b", [])
-    die_roll   = max(1, min(6, int(data.get("die_roll", 1))))
+    die_rolls  = data.get("die_rolls", {})  # {country_id: 1-6}
+
+    if not side_a_ids or not side_b_ids:
+        return jsonify({"error": "Both sides must have at least one country"}), 400
+    if not die_rolls:
+        return jsonify({"error": "Die rolls are required"}), 400
 
     cmap = {c["id"]: c for c in state["countries"]}
 
@@ -394,30 +403,29 @@ def api_teacher_resolve_war():
     WINNER_LOSS = {1: 0.50, 2: 0.40, 3: 0.30, 4: 0.20, 5: 0.10, 6: 0.00}
     LOSER_LOSS  = {1: 0.70, 2: 0.60, 3: 0.50, 4: 0.40, 5: 0.30, 6: 0.20}
 
-    winner_pct = WINNER_LOSS[die_roll]
-    loser_pct  = LOSER_LOSS[die_roll]
-
     total_colonies_won = 0
-
-    for cid in loser_ids:
-        c = cmap.get(cid)
-        if not c:
-            continue
-        lost_cols  = int(c["colonies"] * loser_pct)
-        c["army"]     = max(0, c["army"]     - int(c["army"]     * loser_pct))
-        c["navy"]     = max(0, c["navy"]     - int(c["navy"]     * loser_pct))
-        c["colonies"] = max(0, c["colonies"] - lost_cols)
-        total_colonies_won += lost_cols
-        # Industries are permanent — not touched
 
     for cid in winner_ids:
         c = cmap.get(cid)
         if not c:
             continue
-        c["army"] = max(0, c["army"] - int(c["army"] * winner_pct))
-        c["navy"] = max(0, c["navy"] - int(c["navy"] * winner_pct))
+        roll     = max(1, min(6, int(die_rolls.get(cid, 3))))
+        loss_pct = WINNER_LOSS[roll]
+        c["army"] = max(0, c["army"] - int(c["army"] * loss_pct))
+        c["navy"] = max(0, c["navy"] - int(c["navy"] * loss_pct))
 
-    # Award colonies to the largest winner by military power
+    for cid in loser_ids:
+        c = cmap.get(cid)
+        if not c:
+            continue
+        roll      = max(1, min(6, int(die_rolls.get(cid, 3))))
+        loss_pct  = LOSER_LOSS[roll]
+        lost_cols = int(c["colonies"] * loss_pct)
+        c["army"]     = max(0, c["army"]     - int(c["army"]     * loss_pct))
+        c["navy"]     = max(0, c["navy"]     - int(c["navy"]     * loss_pct))
+        c["colonies"] = max(0, c["colonies"] - lost_cols)
+        total_colonies_won += lost_cols
+
     if winner_ids and total_colonies_won > 0:
         largest = max(winner_ids, key=lambda cid: _military_power(cmap[cid]) if cid in cmap else 0)
         if largest in cmap:
@@ -427,13 +435,11 @@ def api_teacher_resolve_war():
     save_state(state)
 
     return jsonify({
-        "ok":                  True,
-        "winner_side":         winner_side,
-        "side_a_power":        a_power,
-        "side_b_power":        b_power,
-        "die_roll":            die_roll,
-        "winner_loss_pct":     winner_pct,
-        "loser_loss_pct":      loser_pct,
+        "ok":                   True,
+        "winner_side":          winner_side,
+        "side_a_power":         a_power,
+        "side_b_power":         b_power,
+        "die_rolls":            die_rolls,
         "colonies_transferred": total_colonies_won,
     })
 

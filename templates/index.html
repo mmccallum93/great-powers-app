@@ -335,6 +335,10 @@ canvas { display: block; }
           <canvas id="vp-chart" height="200"></canvas>
         </div>
       </div>
+      <div class="chart-container" style="margin-top:16px">
+        <h3>Colonial Holdings</h3>
+        <canvas id="colony-map"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -632,6 +636,7 @@ function renderLeaderboard() {
 
   renderRankedList(countries);
   drawChart(countries);
+  drawColonyMap(countries);
 }
 
 function renderRankedList(countries) {
@@ -688,6 +693,123 @@ function drawChart(countries) {
   });
 }
 
+// ─── Colony Map ───
+
+var MAP_CONTINENTS = [
+  // North America (Canada/Arctic)
+  [[-168,72],[-120,52],[-65,47],[-55,47],[-55,68],[-80,83],[-100,83],[-140,70],[-168,72]],
+  // USA / Mexico / Central America
+  [[-120,52],[-65,47],[-75,26],[-88,16],[-82,9],[-77,8],[-88,14],[-105,20],[-118,32],[-120,52]],
+  // South America
+  [[-78,12],[-62,11],[-36,-5],[-53,-34],[-65,-55],[-75,-30],[-82,-3],[-78,12]],
+  // Europe
+  [[-10,72],[32,72],[48,65],[30,60],[30,50],[15,45],[5,43],[-10,44],[-10,72]],
+  // Africa
+  [[-18,37],[42,37],[52,12],[45,8],[42,-12],[35,-35],[18,-35],[8,0],[5,5],[-18,15],[-18,37]],
+  // Eurasia (main)
+  [[28,72],[179,72],[179,55],[142,46],[140,5],[105,5],[95,10],[65,25],[45,12],[40,37],[28,72]],
+  // India
+  [[65,25],[90,22],[80,8],[72,8],[65,25]],
+  // Australia
+  [[114,-22],[154,-24],[153,-38],[135,-38],[115,-35],[114,-22]],
+  // Greenland
+  [[-26,83],[-10,76],[-22,70],[-44,60],[-52,62],[-56,76],[-26,83]],
+  // New Guinea
+  [[132,-6],[148,-6],[148,-10],[132,-8],[132,-6]],
+];
+
+var COLONY_SPOTS = [
+  // West Africa
+  [-14,15],[-11,11],[-8,6],[-5,5],[0,5],[3,6],[6,6],[9,4],[11,3],[14,5],[16,4],[18,4],
+  // Central Africa
+  [20,2],[22,4],[24,2],[26,0],[28,2],[30,0],[25,-4],[22,-7],[18,-8],[15,-7],[12,-5],
+  // East Africa
+  [36,3],[38,5],[40,2],[42,0],[40,-8],[36,-12],[34,-18],[30,-22],
+  // Southern Africa
+  [24,-30],[28,-26],[32,-22],[26,-18],[20,-28],[35,-20],
+  // North Africa
+  [-5,32],[0,30],[5,32],[8,33],[12,32],[16,30],[20,28],[25,25],[28,25],[32,25],[35,22],
+  // Horn of Africa / Arabia
+  [42,15],[44,12],[46,10],[46,8],[44,4],[50,18],[52,24],[56,22],[58,26],
+  // Central Asia
+  [62,40],[65,38],[68,42],[70,40],[62,34],[66,34],[72,38],[76,46],
+  // South Asia
+  [68,22],[72,20],[75,18],[78,14],[80,15],[82,18],[84,12],[77,10],[72,12],
+  // Southeast Asia
+  [100,15],[102,4],[104,2],[107,12],[110,4],[112,2],[114,4],[120,10],[106,20],[96,14],
+  // Indonesia / Borneo
+  [112,-1],[116,-2],[118,-2],[116,4],[108,-4],[110,-8],[115,-8],
+  // Philippines
+  [120,14],[122,12],[124,10],[121,8],[118,10],
+  // East Asia coast
+  [121,30],[120,24],[118,22],[114,22],
+  // Pacific Islands
+  [160,-10],[165,-8],[170,-15],[175,-20],[-175,-15],[-162,-20],[-155,-20],
+  [145,-6],[150,-8],[155,-6],[148,-10],[168,-18],[160,-22],
+  [150,-10],[152,8],[145,15],[148,25],[138,20],[170,8],[165,8],
+  // Indian Ocean Islands
+  [55,-21],[73,-7],[55,-12],[63,-12],[46,-15],[80,-8],
+  // Caribbean
+  [-72,18],[-70,17],[-67,17],[-63,16],[-60,13],[-78,22],[-76,24],[-74,20],
+  // South America coast / extras
+  [-58,9],[-55,4],[-52,4],[-48,-15],[-45,-22],
+  // More Africa interior
+  [15,5],[20,10],[24,15],[28,10],[22,-2],[16,0],
+];
+
+function lonLatToXY(lon, lat, W, H) {
+  return [(lon + 180) * W / 360, (90 - lat) * H / 180];
+}
+
+function drawColonyMap(countries) {
+  var canvas = document.getElementById('colony-map');
+  if (!canvas) return;
+  var W = canvas.parentElement.clientWidth - 32;
+  var H = Math.max(140, Math.round(W * 0.42));
+  canvas.width  = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#1a1a08';
+  ctx.fillRect(0, 0, W, H);
+
+  MAP_CONTINENTS.forEach(function(poly) {
+    ctx.beginPath();
+    poly.forEach(function(pt, i) {
+      var xy = lonLatToXY(pt[0], pt[1], W, H);
+      if (i === 0) ctx.moveTo(xy[0], xy[1]);
+      else ctx.lineTo(xy[0], xy[1]);
+    });
+    ctx.closePath();
+    ctx.fillStyle = '#2e2e18';
+    ctx.fill();
+    ctx.strokeStyle = '#4a4a28';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  if (!countries || !countries.length) return;
+  var N = countries.length;
+
+  COLONY_SPOTS.forEach(function(spot, idx) {
+    var cIdx    = idx % N;
+    var country = countries[cIdx];
+    var rank    = Math.floor(idx / N);
+    if (rank < country.colonies) {
+      var xy = lonLatToXY(spot[0], spot[1], W, H);
+      ctx.beginPath();
+      ctx.arc(xy[0], xy[1], Math.max(2, W / 240), 0, Math.PI * 2);
+      ctx.fillStyle = country.color;
+      ctx.shadowColor = country.color;
+      ctx.shadowBlur  = 4;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur  = 0;
+    }
+  });
+}
+
 // ─── Helpers ───
 async function apiPost(url, body) {
   try {
@@ -703,7 +825,10 @@ async function apiPost(url, body) {
 }
 
 window.addEventListener('resize', function() {
-  if (state && state.countries) drawChart(state.countries);
+  if (state && state.countries) {
+    drawChart(state.countries);
+    drawColonyMap(state.countries);
+  }
 });
 
 init();
